@@ -1,7 +1,15 @@
 @page "/"
+@using Microsoft.AspNetCore.Components.Authorization
+@using CustomerOrder.Services
 @inject NavigationManager Navigation
 @inject HttpClient Http
 @inject Blazored.LocalStorage.ILocalStorageService localStorage
+
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IJSRuntime JS
+@using Microsoft.AspNetCore.Components.Forms
+
+
 
 <h3>Login</h3>
 
@@ -9,12 +17,12 @@
 {
     <p style="color:red">@errorMessage</p>
 }
-
-<form style="display: flex; flex-direction: column; width: 250px;">
+<form onsubmit="return false" style="display: flex; flex-direction: column; width: 250px;">
     <input placeholder="Username" @bind="username" style="margin-bottom: 10px;" />
     <input placeholder="Password" @bind="password" type="password" style="margin-bottom: 15px;" />
-    <button @onclick="HandleLogin">Login</button>
+    <button type="button" @onclick="HandleLogin">Login</button>
 </form>
+
 
 @code {
     private string username;
@@ -27,22 +35,38 @@
             @* await JS.InvokeVoidAsync("localStorage.setItem", "auth", "true"); *@
 
             // Redirect to home/dashboard
-
             
-            var response = await Http.PostAsJsonAsync("api/login", new { username, password });
+        try
+        {
+                 await JS.InvokeVoidAsync("console.log", "Before Login successful");
+            var response = await Http.PostAsJsonAsync("api/login/login", new { username, password });
+            
             var result = await response.Content.ReadFromJsonAsync<LoginResponse>();
-            if (result.IsAuthenticated)
+
+            if (result != null && result.IsAuthenticated)
             {
-                
+                await JS.InvokeVoidAsync("console.log", "Login successful");
+
+                // Logging is not available in Blazor WebAssembly; use JS interop if needed.
                 await localStorage.SetItemAsync("authToken", result.Token);
 
+                
+                // Notify auth provider
+                var authProvider = (JwtAuthStateProvider)AuthenticationStateProvider;
+                authProvider.NotifyUserAuthentication(result.Token);
                 Navigation.NavigateTo("/home", true);
             }
             else
             {
-                errorMessage = "Login failed.";
+                errorMessage = "Login failed. Invalid response.";
             }
         
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"An error occurred: {ex.Message}";
+        }
+    
     }
          
 }

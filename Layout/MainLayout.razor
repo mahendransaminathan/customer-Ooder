@@ -17,35 +17,3 @@
     </main>
 </div>
 
-@code {
-    private bool _sentLogin = false;
-
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        if (firstRender && !_sentLogin)
-        {
-            _sentLogin = true;
-
-            var loginInfo = new LoginInfoDto
-            {
-                Username = "admin", // Replace with dynamic value if available
-                Password = "password"
-            };
-
-            try
-            {
-                await Http.PostAsJsonAsync("api/register", loginInfo);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Login info failed: {ex.Message}");
-            }
-        }
-    }
-
-    public class LoginInfoDto
-    {
-        public string Username { get; set; }
-        public string Password { get; set; }
-    }
-}
