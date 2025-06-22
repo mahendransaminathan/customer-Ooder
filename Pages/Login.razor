@@ -1,0 +1,48 @@
+@page "/"
+@inject NavigationManager Navigation
+@inject HttpClient Http
+@inject Blazored.LocalStorage.ILocalStorageService localStorage
+
+<h3>Login</h3>
+
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <p style="color:red">@errorMessage</p>
+}
+
+<form style="display: flex; flex-direction: column; width: 250px;">
+    <input placeholder="Username" @bind="username" style="margin-bottom: 10px;" />
+    <input placeholder="Password" @bind="password" type="password" style="margin-bottom: 15px;" />
+    <button @onclick="HandleLogin">Login</button>
+</form>
+
+@code {
+    private string username;
+    private string password;
+    private string errorMessage;
+
+    private async Task HandleLogin()
+    {
+            // Set a fake auth token (for demo purposes)
+            @* await JS.InvokeVoidAsync("localStorage.setItem", "auth", "true"); *@
+
+            // Redirect to home/dashboard
+
+            
+            var response = await Http.PostAsJsonAsync("api/login", new { username, password });
+            var result = await response.Content.ReadFromJsonAsync<LoginResponse>();
+            if (result.IsAuthenticated)
+            {
+                
+                await localStorage.SetItemAsync("authToken", result.Token);
+
+                Navigation.NavigateTo("/home", true);
+            }
+            else
+            {
+                errorMessage = "Login failed.";
+            }
+        
+    }
+         
+}

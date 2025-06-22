@@ -1,0 +1,11 @@
+# production
+/obj/*
+/bin
+[oO]bj/
+/bin/
+/obj/
+/publish/
+/*.user
+/*.vs/
+wwwroot/lib/
+
